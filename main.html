@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.2.0/redux.js"></script>
+  </head>
   <body>
     <div id="subject"></div>
     <div id="toc"></div>
@@ -15,12 +18,28 @@
         `;
       }
       function TOC() {
+        const state = store.getState();
+        let i = 0;
+        let liTags = "";
+        console.log(state);
+        while (i < state.contents.length) {
+          liTags =
+            liTags +
+            `
+          <li>
+            <a onclick="
+            event.preventDefault();
+            let action = {type:'SELECT', id:${state.contents[i].id}}
+            store.dispatch(action);
+            "
+            href="${state.contents[i].id}">${state.contents[i].title}</a>
+          </li>
+          `;
+          i++;
+        }
         document.querySelector("#toc").innerHTML = `
          <nav>
-           <ol>
-             <li><a href="1.html">HTML</a></li>
-             <li><a href="2.html">HTML</a></li>
-           </ol>
+           <ol> ${liTags} </ol>
          </nav>
         `;
       }
@@ -33,13 +52,44 @@
         `;
       }
       function article() {
+        const state = store.getState();
+        let descs = "";
+        let i = 0;
+
+        while (i < state.contents.length) {
+          descs =
+            descs +
+            `
+          <h2>${state.contents[i].title}</h2>
+          ${state.contents[i].desc}
+          `;
+          i++;
+        }
         document.querySelector("#article").innerHTML = `
-        <article>
-          <h2>HTML</h2>
-          HTML is ...
-        </article>
+        <article> ${descs} </article>
         `;
       }
+      function reducer(state, action) {
+        console.log(state, action);
+        if (state === undefined) {
+          return {
+            selected_id: null,
+            contents: [
+              { id: 1, title: "HTML", desc: "HTML is ..." },
+              { id: 2, title: "CSS", desc: "CSS is ..." },
+            ],
+          };
+        }
+        let newState = {};
+        if (action.type === "SELECT") {
+          newState = Object.assign({}, state, { selected_id: action.id });
+        }
+        console.log(action, state, newState);
+
+        return newState;
+      }
+      const store = Redux.createStore(reducer);
+
       subject();
       TOC();
       control();
